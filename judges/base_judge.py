@@ -1,6 +1,19 @@
 import requests
 import json
 import os
+from pathlib import Path
+
+def _load_env():
+    env_path = Path(__file__).parent.parent / ".env"
+    if env_path.exists():
+        with open(env_path) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, value = line.split("=", 1)
+                    os.environ.setdefault(key.strip(), value.strip())
+
+_load_env()
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "mistral:7b-instruct"
@@ -15,16 +28,14 @@ def call_ollama(prompt):
         )
         response.raise_for_status()
         return response.json().get("response", "").strip()
+
     except Exception:
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
             raise RuntimeError(
-                "Ollama is not running and ANTHROPIC_API_KEY is not set.\n"
-                "Option 1 - Local: ollama serve\n"
-                "Option 2 - API: export ANTHROPIC_API_KEY=your_key_here"
+                "Ollama is not running and ANTHROPIC_API_KEY is not set."
             )
         import anthropic
-
         client = anthropic.Anthropic(api_key=api_key)
         message = client.messages.create(
             model="claude-sonnet-4-20250514",
@@ -35,8 +46,16 @@ def call_ollama(prompt):
 
 
 class BaseJudge:
+
     def __init__(self, name):
         self.name = name
 
     def evaluate(self, text):
         raise NotImplementedError
+
+Then rename the .env file. Find the file currently named ANTHROPIC_API_KEY.env and rename it to just .env with nothing before the dot.
+
+Then run:
+git add judges/base_judge.py
+git commit -m "Fix env file loading in base judge"
+git push
