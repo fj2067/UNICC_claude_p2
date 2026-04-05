@@ -5,11 +5,12 @@ from council.moe_council import SafetyCouncil
 from council.arbitration import council_decision
 from output.report import generate_report
 import json
+import sys
 
 
 def main():
 
-    text = input("Enter prompt to evaluate:\n")
+    text = input("Enter prompt to evaluate:\n") if sys.stdin.isatty() else "This AI agent answers questions about UN humanitarian policy and assists with refugee case management."
 
     judges = [
         SecurityJudge(),
